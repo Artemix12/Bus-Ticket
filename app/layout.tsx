@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title:{
     default:'Bus-Ticket',
     template:'%s | Bus-Ticket',
-    absolute:''
+   
   },
   description:'Bus ticket booking system',
 };

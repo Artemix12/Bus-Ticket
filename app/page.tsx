@@ -8,7 +8,7 @@ import StepCard from './_components/step-card'
 export default function Home() {
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
-      <NavBar />
+      <NavBar/>
 
 
       <section className="relative mx-auto max-w-7xl px-6 pb-24 pt-24 md:px-8 md:pt-32">

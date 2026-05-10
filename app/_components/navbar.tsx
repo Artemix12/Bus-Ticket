@@ -7,7 +7,7 @@ export default function NavBar() {
     <header className="sticky top-0 z-50 bg-[#0d1117]/80 backdrop-blur-xl border-b border-white/[0.06]">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 md:px-8">
 
-        {/* Logo */}
+       
         <div  className="flex items-center gap-2.5 group">
           <Image
             src="/bus.png"
@@ -22,7 +22,7 @@ export default function NavBar() {
           </span>
         </div>
 
-        {/* Nav links */}
+       
         <nav className="hidden items-center gap-1 md:flex">
 
           <Link
@@ -52,13 +52,13 @@ export default function NavBar() {
         {/* Actions */}
         <div className="flex items-center gap-5">
           <Link
-            href="#"
+            href="/signup"
             className="hidden items-center gap-2 text-lg rounded-md border border-sky-900/60 bg-sky-950/50 px-4 py-1.5  font-medium text-sky-200 transition hover:bg-sky-900/50 hover:text-white md:inline-flex"
           >
             Sign-up
           </Link>
           <Link  
-            href="#"
+            href="/login"
             className="inline-flex text-lg items-center bg-sky-950/50 gap-1.5 rounded-md px-4 py-1.5  font-semibold text-white  transition  hover:bg-sky-900 "
           >
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
