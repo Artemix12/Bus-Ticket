@@ -4,12 +4,13 @@ import dbConnect from '@/dbconfig/mongoose'
 import{NextRequest,NextResponse} from 'next/server'
 import Trip from "@/models/trip.model"
 
-dbConnect()
+
 
 export async function POST(request:NextRequest)
 {
    try 
    {
+    await dbConnect()
     const session = await auth.api.getSession({
     headers: await headers() 
     })
@@ -17,7 +18,6 @@ export async function POST(request:NextRequest)
     if(!session || session.user.role !=='admin'){
     return NextResponse.json({error:'Unauthorized'},{status:401})
     }
-
 
    const{from,to ,departureDate,departureTime,price,remainingSeat,status,totalSeat } = await request.json() 
    
@@ -60,7 +60,7 @@ export async function POST(request:NextRequest)
   )
   }
 
-   const newBooking = await Trip.create
+   const newTrip = await Trip.create
    ({
       from,
       to,
@@ -75,12 +75,11 @@ export async function POST(request:NextRequest)
    return NextResponse.json({
     
       success:true,
-      data:newBooking
+      data:newTrip,
+      message:'Trip created successfully'
    },{
     status:201,
    })
-
-   
 
    } catch (error) 
    {
@@ -126,7 +125,8 @@ export async function GET(request:NextRequest)
 
     return NextResponse.json({
       success:true,
-      data:trips
+      data:trips,
+      message: 'Trips retrieved successfully'
     },
     {
       status:200
