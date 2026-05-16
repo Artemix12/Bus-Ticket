@@ -4,12 +4,13 @@ import { auth } from "@/utils/auth"
 import Trip from "@/models/trip.model"
 import dbConnect from '@/dbconfig/mongoose'
 
-dbConnect()
+
 
 export async function GET(request:NextRequest,{params}:{params:Promise<{id:string}>})
 {
   try{
-
+ 
+    await dbConnect()
     const session = await auth.api.getSession({
     headers: await headers() 
     })
@@ -32,7 +33,8 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{id:strin
 
     return NextResponse.json({
     success:true,
-    data:findTripDetail
+    data:findTripDetail,
+    message: 'Trip details retrieved successfully'
     },
     {
      status:200
@@ -87,7 +89,7 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
       {
         status:status
       },
-      {new:true}
+      {returnDocument: 'after'}
     )
 
     if(!changeTripStatus){
@@ -98,8 +100,10 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
    }
 
   return NextResponse.json({
+    success:true,
     data:changeTripStatus,
-    success:true
+    message:'Trip status updated successfully'
+    
   },
   {
    status:200,
