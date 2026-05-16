@@ -32,7 +32,7 @@ export const auth = betterAuth({
 					const userCount = await db.collection('user').countDocuments();
 
 					// Si c'est le premier, lui attribuer le rôle admin
-					if (userCount === 0) {
+					if (userCount === 0  ) {
 						return {
 							data: {
 								...user,
