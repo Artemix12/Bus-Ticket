@@ -1,4 +1,5 @@
 import mongoose,{Schema} from 'mongoose'
+import '@/models/user.model'
 
 const BookingSchema = new mongoose.Schema({
 
@@ -11,7 +12,8 @@ const BookingSchema = new mongoose.Schema({
     userId:
     {
       type:Schema.Types.ObjectId,
-      ref:'User'
+      ref:'User',
+      required:true
     },
 
     tripId: 
@@ -37,8 +39,29 @@ const BookingSchema = new mongoose.Schema({
     status:
     {
       type:String,
-      enum:['available','canceled']
-    }
+      enum:['available','canceled'],
+      default:'available'
+    },
+    giftRecipient:
+    {
+      type:String,
+      default:null
+    },
+    isGift:
+    {
+      type:Boolean,
+      default:false
+    },
+    totalPrice:
+    {
+      type:Number,
+     
+    },
+  
+
+},
+{
+timestamps:true
 })
 
-export default mongoose.models.BookingSchema || mongoose.model('Booking',BookingSchema)
+export default mongoose.models.Booking || mongoose.model('Booking',BookingSchema)

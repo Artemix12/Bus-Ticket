@@ -34,7 +34,7 @@ const TripSchema = new mongoose.Schema({
   status:
   {
     type:String,
-    enum:['available','canceled']
+    enum:['available','cancelled']
 
   },
 
@@ -49,4 +49,4 @@ const TripSchema = new mongoose.Schema({
 
 })
 
-export default mongoose.models.TripSchema || mongoose.model('Trip',TripSchema)
+export default mongoose.models.Trip || mongoose.model('Trip',TripSchema)
