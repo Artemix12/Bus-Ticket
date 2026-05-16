@@ -13,7 +13,7 @@ async function dbConnect(){
     if(cached.conn)return cached.com
 
     if(!cached.conn){
-      cached.promise = mongoose.connect(MONGO_URI,{bufferCommands:false})
+      cached.promise = await mongoose.connect(MONGO_URI,{bufferCommands:false})
     }
     
     cached.conn = await cached.promise
