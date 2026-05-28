@@ -32,11 +32,14 @@ const sendEmail = async (options: SendEmailOptions) => {
     }
 
     const mailGenerator = new Mailgen({
-      theme: "default",
+       theme: {
+       path: process.cwd() + '/node_modules/mailgen/themes/default/index.html',
+       plaintextPath: process.cwd() + '/node_modules/mailgen/themes/default/index.txt'
+    },
 
-      product: {
-        name: "BUS-TICKET",
-        link: process.env.DOMAIN,
+    product: {
+      name: "BUS-TICKET",
+      link: process.env.DOMAIN,
       },
     });
 
