@@ -6,8 +6,7 @@ import {headers} from "next/headers";
 import dbConnect from "@/dbconfig/mongoose";
 import QRCode from 'qrcode'
 import {bookingConfirmationMailgenContent, bookingCancellationMailgenContent, sendEmail} from "@/helper/mail";
-
-
+import * as Sentry from "@sentry/nextjs";
 
 
 
@@ -44,11 +43,15 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
     }
 
     if(findTrip.remainingSeat < passengerCount){
+    Sentry.logger.warn("Booking failed due to insufficient seats", {
+    tripId: id,
+    requestedSeats: passengerCount,
+    remainingSeats: findTrip.remainingSeat})
     return NextResponse.json({error:'Not enough seats available'},{status:400})
 
     }else
     {
-        await Trip.findByIdAndUpdate(id,{$inc:{remainingSeat:-passengerCount}},{returnDocument: 'after'})
+      await Trip.findByIdAndUpdate(id,{$inc:{remainingSeat:-passengerCount}},{returnDocument: 'after'})
     }
 
 
@@ -61,6 +64,8 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
     })
 
     const ticketUrl = `${process.env.DOMAIN}/scan/${newBooking._id}`
+
+    const viewAllTicketsURL = `${process.env.DOMAIN}/dashboard`
 
     const qrCode = await QRCode.toDataURL(ticketUrl)
    
@@ -87,18 +92,30 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
     newBooking.passengerCount,
     newBooking.seatNumber,
     newBooking.totalPrice,
-    ticketUrl
+    viewAllTicketsURL
   )
 })
-    return NextResponse.json({success:true,data:newBooking,message: "Booking created successfully"},{status:201})
+  Sentry.logger.info("Booking created successfully", {
+  bookingId: newBooking._id,
+  userId: session.user.id,
+  tripId: id,
+  passengerCount,
+  totalPrice: newBooking.totalPrice
+  })
 
-  } catch (error) {
+  return NextResponse.json({success:true,data:newBooking,message: "Booking created successfully"},{status:201})
+
+  } 
+  catch (error) 
+  {
     const message = error instanceof Error ? error.message : 'An unexpected error occurred.'
+    Sentry.logger.error("Failed to create booking", {route: "/api/v1/bookings/[id]",})
+    Sentry.captureException(error,{tags: {section: "booking-creation"}})
     return NextResponse.json({error: message}, {status: 500})
    }
 }
 
-export const PATCH = async(request:NextRequest,{params}:{params:Promise<{id:string}>})=>
+export const DELETE = async(request:NextRequest,{params}:{params:Promise<{id:string}>})=>
 {
  try 
  {
@@ -110,27 +127,13 @@ export const PATCH = async(request:NextRequest,{params}:{params:Promise<{id:stri
     if(!session){
     return NextResponse.json({error:'Unauthorized'},{status:401})
     }
-    const allowedStatus = ['cancelled']
+    
     const{id}=await params
 
     if(!id){
      return NextResponse.json({error:'ID is required'},{status:400})
     }
    
-    const {status} = await request.json()
-    
-    if(!status)
-    {
-     return NextResponse.json({error:'Status cannot be empty'},{status:400})
-    }
-
-    if (!allowedStatus.includes(status)) {
-    return NextResponse.json(
-    { error: 'Invalid booking status' },
-    { status: 400 }
-  )
-}
-
    const existingBooking = await Booking.findById(id)
 
    if (!existingBooking) {
@@ -140,32 +143,21 @@ export const PATCH = async(request:NextRequest,{params}:{params:Promise<{id:stri
    )
    }
 
-  if (existingBooking.status === 'cancelled') {
-  return NextResponse.json(
-    { error: 'Booking is already cancelled' },
-    { status: 400 }
-  )
-  }
-
-  const updatedBooking = await Booking.findByIdAndUpdate(
+  const updatedBooking = await Booking.findByIdAndDelete(
   id,
-  { status },
-  { returnDocument:'after' }
+  
   )
-
 
   const updatedRemainingSeats = await Trip.findByIdAndUpdate(
     updatedBooking.tripId,
     {
-      $inc:
-      {
+    $inc:
+    {
         remainingSeat:updatedBooking.passengerCount
-      }
+    }
     },
     {returnDocument:'after'}
     )
-
- 
 
     if (!updatedRemainingSeats) {
     return NextResponse.json(
@@ -188,14 +180,23 @@ export const PATCH = async(request:NextRequest,{params}:{params:Promise<{id:stri
       )
 
       
-    })
+  })
 
-    return NextResponse.json({ message: 'Booking cancelled successfully' },{ status: 200 })
+  Sentry.logger.info("Booking cancelled successfully", 
+  {
+  bookingId: id,
+  userId: session.user.id,
+  restoredSeats: updatedBooking.passengerCount
+  })
+
+  return NextResponse.json({ message: 'Booking cancelled successfully' },{ status: 200 })
 
 
  } catch (error) 
  {
   const message = error instanceof Error ? error.message : 'An unexpected error occurred.'
+  Sentry.logger.error("Failed to cancel booking", {route: "/api/v1/bookings/[id]",})
+  Sentry.captureException(error,{tags: {section: "booking-cancellation"}})
   return NextResponse.json({error: message}, {status: 500})
  }
 }

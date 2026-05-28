@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import {useState} from 'react'
 import {authClient} from '@/utils/auth-client'
 import {redirect} from 'next/navigation'
+import * as Sentry from "@sentry/nextjs";
 
 
 export function LoginForm () {
@@ -22,16 +23,19 @@ export function LoginForm () {
   const[email,setEmail] = useState('')
   const[password,setPassword] = useState('')
   const[errorMessage,setErrorMessage]= useState<string|undefined>('')
-  const[isChecked,setCheck] = useState(false)
+
   
- async function handleLogin(e:React.SubmitEvent<HTMLFormElement>){
-  e.preventDefault()
+ async function handleLogin(e:React.SubmitEvent<HTMLFormElement>)
+ {
+   try 
+   {
+    e.preventDefault()
 
     const { data, error } = await authClient.signIn.email({
     email: email, 
     password:password , 
-    rememberMe: isChecked,
-   });
+    
+    });
 
     if(error){
       setErrorMessage(error.message)
@@ -40,19 +44,53 @@ export function LoginForm () {
     {
       setEmail('')
       setPassword('')
-      redirect('/dashboard')
+      redirect(data.user?.role==='admin'?'/admin_dashboard':'/dashboard')
     }
+   } 
+   catch (error) 
+  {
+    Sentry.captureException(error, {
+    tags: {
+      section: "login-form",
+      component: "handleLogin"
+    }
+  })
+
+    Sentry.logger.error("Failed to login with email", {
+    endpoint: "authClient.signIn.email"
+  })
+  }
 
 
  }
 
 
-  const signIn = async () => {
-	await authClient.signIn.social({
-		provider: "google",
-		callbackURL: "/dashboard", 
-	});
+
+const signIn = async () => {
+  
+  try 
+  {
+  await authClient.signIn.social({
+  provider: "google",
+  callbackURL: "/dashboard"
+  });
+  } catch (error) 
+  {
+    Sentry.captureException(error, {
+    tags: {
+      section: "login-form",
+      component: "signIn"
+    }
+  })
+
+  Sentry.logger.error("Failed to login with Google", {
+    endpoint: "authClient.signIn.social"
+  })
+  }
+
+  
 };
+
 
  
   return (
@@ -71,7 +109,7 @@ export function LoginForm () {
           </CardDescription>
           <CardAction>
             <Link href="/signup">
-              <Button variant="link" className="text-sky-400 hover:text-sky-300 px-0 text-sm">
+              <Button variant="link" className="text-sky-400 hover:cursor-pointer hover:text-sky-300 px-0 text-sm">
                 Sign Up
               </Button>
             </Link>
@@ -106,20 +144,13 @@ export function LoginForm () {
                   value={password}
                   onChange={e=>setPassword(e.target.value)}
                 />
-                <Label htmlFor='check'>Remember me</Label>
-                <Input
-                id='check'
-                type='checkbox'
-                checked={isChecked}
-                onChange={e=>setCheck(e.target.checked)}
-
-                />
+             
               </div>
 
             </div>
             <Button
             type="submit"
-            className="w-full bg-sky-900 font-semibold text-sky-100 shadow-none transition hover:bg-sky-800 hover:text-white"
+            className="w-full bg-sky-900 font-semibold text-sky-100 shadow-none transition  hover:bg-sky-800 hover:text-white cursor-pointer mt-6"
           >
             Login
           </Button>
@@ -140,7 +171,7 @@ export function LoginForm () {
           <Button
             onClick={()=>signIn()}
             variant="outline"
-            className="w-full border-white/[0.08] bg-white/[0.03] text-slate-300 shadow-none transition hover:bg-white/[0.07] hover:text-white"
+            className="w-full border-color: color-mix(in oklab, var(--color-white) background-color: color-mix(in oklab, var(--color-white) text-slate-300 shadow-none transition hover:cursor-pointer p-3 hover:bg-white/[0.07] hover:text-white"
           >
             <svg viewBox="0 0 24 24" className="mr-2 h-4 w-4" aria-hidden>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

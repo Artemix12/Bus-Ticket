@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import {useState} from 'react'
 import{redirect} from 'next/navigation'
 import {authClient} from '@/utils/auth-client'
+import * as Sentry from "@sentry/nextjs";
 
 export function CardDemo() {
 
@@ -29,7 +30,9 @@ export function CardDemo() {
    async function signUp(e:React.SubmitEvent<HTMLFormElement>)
    {
   
-    e.preventDefault()
+    try 
+    {
+      e.preventDefault()
      if(!passwordRegex.test(password)){
       setErrorMessage('Password must contain at least 8 characters, one uppercase letter, one lowercase letter, and one number.')
      }
@@ -50,14 +53,26 @@ export function CardDemo() {
     setEmail('')
     redirect('/login')
      
-     }
+    }
+    } catch (error) 
+    {
+    Sentry.captureException(error, {tags: {section: "sign-up-form",component: "signUp"}})
+    Sentry.logger.error("Failed to sign up with email", {endpoint: "authClient.signUp.email"})
+    }
+
    }
 
-      const signUpWithGoogle = async () => {
-      await authClient.signIn.social({
+    const signUpWithGoogle = async () => {
+     try 
+     {
+        await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard", // ← Redirection après connexion réussie
+        callbackURL: "/dashboard", 
       });
+     } catch (error) {
+      Sentry.captureException(error, {tags: {section: "sign-up-form",component: "signUpWithGoogle"}})
+      Sentry.logger.error("Failed to sign up with Google", {endpoint: "authClient.signUp.social"})
+     }
     };
 
 
@@ -78,7 +93,7 @@ export function CardDemo() {
           </CardDescription>
           <CardAction>
             <Link href="/login">
-              <Button variant="link" className="text-sky-400 hover:text-sky-300 px-0 text-sm">
+              <Button variant="link" className="text-sky-400 hover:cursor-pointer hover:text-sky-300 px-0 text-sm">
                 Sign In
               </Button>
             </Link>
@@ -133,7 +148,7 @@ export function CardDemo() {
             </div>
                <Button
             type="submit"
-            className="w-full bg-sky-900 font-semibold text-sky-100 shadow-none transition hover:bg-sky-800 hover:text-white"
+            className="w-full bg-sky-900 font-semibold text-sky-100 shadow-none hover:cursor-pointer transition hover:bg-sky-800 hover:text-white"
           >
             Create account
           </Button>
@@ -153,7 +168,7 @@ export function CardDemo() {
           <Button
             onClick={()=>signUpWithGoogle()}
             variant="outline"
-            className="w-full border-white/[0.08] bg-white/[0.03] text-slate-300 shadow-none transition hover:bg-white/[0.07] hover:text-white"
+            className="w-full border-color: color-mix(in oklab, var(--color-white)  background-color: color-mix(in oklab, var(--color-white) hover:cursor-pointer text-slate-300 shadow-none transition hover:bg-white/[0.07] hover:text-white"
           >
             <svg viewBox="0 0 24 24" className="mr-2 h-4 w-4" aria-hidden>
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

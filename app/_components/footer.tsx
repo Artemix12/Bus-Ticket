@@ -26,10 +26,10 @@ export default function Footer() {
               Product
             </p>
             <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><Link href="#" className="transition hover:text-white">Home</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Explore Routes</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Book a Ticket</Link></li>
-              <li><Link href="#" className="transition hover:text-white">My Dashboard</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Home</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Explore Routes</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400 ">Book a Ticket</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">My Dashboard</Link></li>
             </ul>
           </div>
 
@@ -39,10 +39,10 @@ export default function Footer() {
               Company
             </p>
             <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><Link href="#" className="transition hover:text-white">About</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Blog</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Careers</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Contact</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">About</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Blog</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Careers</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Contact</Link></li>
             </ul>
           </div>
 
@@ -52,9 +52,9 @@ export default function Footer() {
               Legal
             </p>
             <ul className="space-y-2.5 text-sm text-slate-400">
-              <li><Link href="#" className="transition hover:text-white">Privacy Policy</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Terms of Service</Link></li>
-              <li><Link href="#" className="transition hover:text-white">Cookie Policy</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Privacy Policy</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Terms of Service</Link></li>
+              <li><Link href="#" className="transition hover:text-sky-400">Cookie Policy</Link></li>
             </ul>
           </div>
         </div>

@@ -22,20 +22,20 @@ export default function Home() {
         <div className="relative flex flex-col items-center text-center">
           <Badge>✦ Make your trip easier</Badge>
 
-          <h1 className="mt-6 max-w-3xl text-5xl font-extrabold leading-[1.08] tracking-tight text-white md:text-6xl">
+          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl md:text-6xl">
             Book your bus ticket{" "}
             <span className="text-sky-400">in seconds.</span>
           </h1>
 
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-400">
+          <p className="mt-5 max-w-xl text-base sm:text-lg leading-relaxed text-slate-400">
             Search routes, reserve seats, and get a digital QR ticket straight
             to your phone — fast, simple, and always on time.
           </p>
 
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-9 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <Link
-              href="#"
-              className="inline-flex items-center gap-2 rounded-lg bg-sky-900 px-6 py-3 text-sm font-semibold text-sky-100 shadow-lg shadow-sky-900/30 transition-all duration-300 ease-in-out hover:scale-110 hover:bg-sky-800 hover:text-white"
+              href="/login"
+              className="inline-flex items-center gap-2 rounded-lg bg-sky-900 px-4 py-2.5 text-xs sm:px-6 sm:py-3 sm:text-sm font-semibold text-sky-100 shadow-lg shadow-sky-900/30 transition-all duration-300 ease-in-out hover:scale-105 sm:hover:scale-110 hover:bg-sky-800 hover:text-white"
             >
               Book a Ticket
               <svg
@@ -53,7 +53,7 @@ export default function Home() {
             </Link>
             <Link
               href="#"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-6 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-2.5 text-xs sm:px-6 sm:py-3 sm:text-sm font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
             >
               Explore Routes
             </Link>
@@ -67,10 +67,10 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 py-20 md:px-8">
         <div className="mb-12 text-center">
           <Badge>Features</Badge>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-white md:text-4xl">
+          <h2 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-white md:text-4xl">
             Everything you need to travel smarter
           </h2>
-          <p className="mt-3 text-slate-400">
+          <p className="mt-3 text-sm sm:text-base text-slate-400">
             A complete platform built for passengers and operators alike.
           </p>
         </div>
@@ -204,7 +204,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 md:px-8">
           <div className="mb-12 text-center">
             <Badge>How it works</Badge>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-white md:text-4xl">
+            <h2 className="mt-4 text-2xl sm:text-3xl font-bold tracking-tight text-white md:text-4xl">
               Travel in 3 simple steps
             </h2>
           </div>
@@ -215,13 +215,13 @@ export default function Home() {
               title="Search your route"
               desc="Enter your departure city, destination, and travel date. See all available buses with schedules and seat availability."
             />
-            <div className="ml-4.25 h-8 w-px bg-white/10" />
+            <div className="hidden sm:block ml-4.25 h-8 w-px bg-white/10" />
             <StepCard
               number="02"
               title="Choose your seat & pay"
               desc="Pick your preferred seat from an interactive seat map and complete your booking with a secure payment."
             />
-            <div className="ml-4.25 h-8 w-px bg-white/10" />
+            <div className="hidden sm:block ml-4.25 h-8 w-px bg-white/10" />
             <StepCard
               number="03"
               title="Board with your QR ticket"
@@ -233,27 +233,27 @@ export default function Home() {
 
    
       <section className="mx-auto max-w-7xl px-6 py-24 md:px-8">
-        <div className="relative overflow-hidden rounded-2xl border border-sky-500/20 bg-sky-950/30 px-8 py-16 text-center">
+        <div className="relative overflow-hidden rounded-2xl border border-sky-500/20 bg-sky-950/30 px-6 py-12 sm:px-8 sm:py-16 text-center">
          
           <div className="relative">
             <Badge>Get started today</Badge>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight text-white md:text-4xl">
+            <h2 className="mt-5 text-2xl sm:text-3xl font-bold tracking-tight text-white md:text-4xl">
               Ready to book your next trip?
             </h2>
-            <p className="mx-auto mt-3 max-w-md text-slate-400 ">
+            <p className="mx-auto mt-3 max-w-md text-sm sm:text-base text-slate-400 ">
               Create a free account in seconds and start exploring routes near
               you.
             </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
               <Link
-                href="#"
-                className="inline-flex items-center gap-2 rounded-lg transition-all ease-in-out duration-200 hover:scale-110 bg-sky-800 px-7 py-3 text-sm font-semibold text-sky-100 shadow-lg shadow-sky-900/30  hover:bg-sky-800 hover:text-white"
+                href="/signup"
+                className="inline-flex items-center gap-2 rounded-lg transition-all ease-in-out duration-200 hover:scale-105 sm:hover:scale-110 bg-sky-800 px-5 py-2.5 sm:px-7 sm:py-3 text-xs sm:text-sm font-semibold text-sky-100 shadow-lg shadow-sky-900/30  hover:bg-sky-700 hover:text-white"
               >
                 Create a free account
               </Link>
               <Link
                 href="#"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-7 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
+                className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-5 py-2.5 sm:px-7 sm:py-3 text-xs sm:text-sm font-medium text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
               >
                 Learn more
               </Link>

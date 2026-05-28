@@ -73,14 +73,14 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar: oklch(0.17 0.02 250);
+  --sidebar-foreground: oklch(0.97 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.26 0.03 250);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(0.30 0.02 250);
+  --sidebar-ring: oklch(0.55 0.12 240);
 }
 
 .dark {
@@ -117,6 +117,22 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Dashboard Custom Colors */
+:root {
+  --dashboard-base: #0d1117;
+  --dashboard-surface: #111827;
+  --dashboard-card: #161f2e;
+  --dashboard-border: rgba(255, 255, 255, 0.07);
+  --dashboard-sky-blue: #38bdf8;
+  --dashboard-sky-dim: rgba(56, 189, 248, 0.1);
+  --dashboard-sky-border: rgba(56, 189, 248, 0.22);
+  --dashboard-green: #34d399;
+  --dashboard-red: #f87171;
+  --dashboard-muted: #8b9ab5;
+  --dashboard-faint: #4a5568;
+  --dashboard-text: #f0f6ff;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -126,5 +142,34 @@
   }
   html {
     @apply font-sans;
+  }
+  
+  /* Dashboard utility classes */
+  .booking-card {
+    @apply rounded-xl overflow-hidden border transition-all duration-180;
+    background: var(--dashboard-card);
+    border-color: var(--dashboard-border);
+  }
+  
+  .booking-card:hover {
+    border-color: var(--dashboard-sky-border);
+    transform: translateY(-1px);
+  }
+  
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(4px);
+  }
+  
+  .modal-content {
+    @apply rounded-lg w-full overflow-hidden shadow-2xl;
+    max-width: 440px;
+    background: var(--dashboard-surface);
+    border: 1px solid var(--dashboard-sky-border);
+  }
+  
+  .status-bar-active {
+    background: linear-gradient(90deg, #0ea5e9, var(--dashboard-sky-blue));
   }
 }

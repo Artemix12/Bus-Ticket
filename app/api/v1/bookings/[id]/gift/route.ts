@@ -6,6 +6,7 @@ import {headers} from "next/headers";
 import dbConnect from "@/dbconfig/mongoose";
 import QRCode from 'qrcode'
 import {giftTicketMailgenContent, sendEmail} from "@/helper/mail";
+import * as Sentry from "@sentry/nextjs";
 
 export const POST = async(request:NextRequest,{params}:{params:Promise<{id:string}>})=>
 {
@@ -85,11 +86,19 @@ export const POST = async(request:NextRequest,{params}:{params:Promise<{id:strin
 
     })
 
+  Sentry.logger.info("Gift ticket created successfully", {
+  bookingId: giftBooking._id,
+  senderId: session.user.id,
+  tripId: id
+})
+
     return NextResponse.json({success:true,data:giftBooking,message: "Ticket gifted successfully"},{status:201})
     
   } catch (error) 
   {
     const message = error instanceof Error ? error.message : 'An unexpected error occurred.'
+    Sentry.logger.error("Failed to create gift booking", {route: "/api/v1/bookings/[id]/gift"})
+    Sentry.captureException(error,{tags:{section:"gift-booking"}})
     return NextResponse.json({error: message}, {status: 500})
   }
 }

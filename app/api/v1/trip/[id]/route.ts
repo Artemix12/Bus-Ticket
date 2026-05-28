@@ -3,6 +3,7 @@ import {headers} from 'next/headers'
 import { auth } from "@/utils/auth"
 import Trip from "@/models/trip.model"
 import dbConnect from '@/dbconfig/mongoose'
+import * as Sentry from "@sentry/nextjs";
 
 
 
@@ -31,7 +32,13 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{id:strin
       return NextResponse.json({message:'Trip not found'},{status:404})  
     }
 
-    return NextResponse.json({
+  Sentry.logger.info("Trip details retrieved successfully", 
+  {
+  userId: session.user.id,
+  tripId: id
+  })
+    
+  return NextResponse.json({
     success:true,
     data:findTripDetail,
     message: 'Trip details retrieved successfully'
@@ -44,6 +51,10 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{id:strin
   } catch (error) 
   {
     const message = error instanceof Error ? error.message : 'An unexpected error occurred'
+    Sentry.captureException(error,
+    {
+     tags: {section:"trip-details"}
+    })
     return NextResponse.json({error:message},{ status: 500 })
   }
 }
@@ -92,12 +103,19 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
       {returnDocument: 'after'}
     )
 
-    if(!changeTripStatus){
+  if(!changeTripStatus){
     return NextResponse.json(
     { message: "Trip not found" },
     { status: 404 }
     )
    }
+
+  Sentry.logger.info("Trip status updated successfully", 
+  {
+  adminId: session.user.id,
+  tripId: id,
+  newStatus: status
+  })
 
   return NextResponse.json({
     success:true,
@@ -112,12 +130,9 @@ export async function PATCH(request:NextRequest,{params}:{params:Promise<{id:str
 
   } catch (error) {
     const message = error instanceof Error ? error.message : 'An unexpected error occurred'
-    return NextResponse.json({
-    error:message
-    },
-    {
-    status:500
-    })
+     Sentry.logger.error("Failed to retrieve trip details", {route: "/api/v1/trip/[id]"})
+     Sentry.captureException(error,{tags: {section:"trip-status-update"}})
+     return NextResponse.json({error:message},{status:500})
     
   }
 }
