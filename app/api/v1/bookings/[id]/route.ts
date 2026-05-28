@@ -73,28 +73,33 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
     return NextResponse.json({error:'Failed to generate QR code'},{status:500})
     }
 
-  await sendEmail({
-  email: session.user.email,
-  subject: "Booking Confirmation",
+  try {
+    await sendEmail({
+      email: session.user.email,
+      subject: "Booking Confirmation",
+      qrCode,
+      mailgenContent: bookingConfirmationMailgenContent(
+        session.user.name,
+        {
+          origin: findTrip.from,
+          destination: findTrip.to,
+          departureDate: findTrip.departureDate,
+          departureTime: findTrip.departureTime,
+          price: findTrip.price,
+        },
+        newBooking.seatNumber,
+        newBooking.totalPrice,
+        newBooking.passengerCount,
+        viewAllTicketsURL
+      )
+    });
+  
+  } catch (error) {
+    Sentry.logger.error("Failed to send Email confirmation")
+    Sentry.captureException(error, {tags: {section: "email-confirmation"}});
+  }
 
-  qrCode,
 
-  mailgenContent: bookingConfirmationMailgenContent(
-    session.user.name,
-    {
-      origin: findTrip.from,
-      destination: findTrip.to,
-      departureDate: findTrip.departureDate,
-      departureTime: findTrip.departureTime,
-      price: findTrip.price,
-    },
-    
-    newBooking.passengerCount,
-    newBooking.seatNumber,
-    newBooking.totalPrice,
-    viewAllTicketsURL
-  )
-})
   Sentry.logger.info("Booking created successfully", {
   bookingId: newBooking._id,
   userId: session.user.id,
@@ -166,21 +171,25 @@ export const DELETE = async(request:NextRequest,{params}:{params:Promise<{id:str
    )
   }
 
-    await sendEmail({
-      email: session.user.email,
-      subject: "Booking cancellation",
-      mailgenContent:bookingCancellationMailgenContent(
-        session.user.name,
-        {
-          from:updatedRemainingSeats.from,
-          to:updatedRemainingSeats.to,
-          departureDate:updatedRemainingSeats.departureDate,
-          price:updatedRemainingSeats.price
-        }
-      )
-
+    try {
+      await sendEmail({
+        email: session.user.email,
+        subject: "Booking cancellation",
+        mailgenContent:bookingCancellationMailgenContent(
+          session.user.name,
+          {
+            from:updatedRemainingSeats.from,
+            to:updatedRemainingSeats.to,
+            departureDate:updatedRemainingSeats.departureDate,
+            price:updatedRemainingSeats.price
+          }
+        )
+      });
       
-  })
+    } catch (error) {
+      Sentry.logger.error("⚠️ Failed to send cancellation email")
+      Sentry.captureException(error, {tags: {section: "email-cancellation"}});
+    }
 
   Sentry.logger.info("Booking cancelled successfully", 
   {

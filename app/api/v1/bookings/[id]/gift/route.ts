@@ -66,25 +66,30 @@ export const POST = async(request:NextRequest,{params}:{params:Promise<{id:strin
     return NextResponse.json({error:'Failed to generate QR code'},{status:500})
     }
     
-    await sendEmail({
-    email:giftRecipient,
-    qrCode,
-    subject:"🎁 You've Received a Bus Ticket Gift",
-    mailgenContent:giftTicketMailgenContent(
-          giftRecipient,
-          session.user.email,
-          {
-            from: findTrip.from,
-            to: findTrip.to,
-            departureDate: findTrip.departureDate,
-            departureTime: findTrip.departureTime,
-            price: findTrip.price,
-          },
-          giftBooking.seatNumber,
-          ticketUrl
-      ),
-
-    })
+    try {
+      await sendEmail({
+        email:giftRecipient,
+        qrCode,
+        subject:"🎁 You've Received a Bus Ticket Gift",
+        mailgenContent:giftTicketMailgenContent(
+              giftRecipient,
+              session.user.name,
+              {
+                from: findTrip.from,
+                to: findTrip.to,
+                departureDate: findTrip.departureDate,
+                departureTime: findTrip.departureTime,
+                price: findTrip.price,
+              },
+              giftBooking.seatNumber,
+              ticketUrl
+          ),
+      });
+      
+    } catch (error) {
+      Sentry.logger.error("⚠️ Failed to send gift ticket email");
+      Sentry.captureException(error, {tags: {section: "email-gift-ticket"}});
+    }
 
   Sentry.logger.info("Gift ticket created successfully", {
   bookingId: giftBooking._id,

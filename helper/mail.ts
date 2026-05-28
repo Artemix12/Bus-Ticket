@@ -1,5 +1,6 @@
 import Mailgen from "mailgen";
 import { BrevoClient } from "@getbrevo/brevo";
+import * as Sentry from "@sentry/nextjs";
 
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY!,
@@ -19,12 +20,23 @@ type SendEmailOptions = {
 
 const sendEmail = async (options: SendEmailOptions) => {
   try {
+   
+    if (!process.env.BREVO_API_KEY) {
+      throw new Error("BREVO_API_KEY is not defined in environment variables");
+    }
+    if (!process.env.SENDER_EMAIL) {
+      throw new Error("SENDER_EMAIL is not defined in environment variables");
+    }
+    if (!process.env.DOMAIN) {
+      throw new Error("DOMAIN is not defined in environment variables");
+    }
+
     const mailGenerator = new Mailgen({
       theme: "default",
 
       product: {
         name: "BUS-TICKET",
-        link: process.env.DOMAIN!,
+        link: process.env.DOMAIN,
       },
     });
 
@@ -56,6 +68,8 @@ const sendEmail = async (options: SendEmailOptions) => {
       }
     `;
 
+
+
     const result = await brevo.transactionalEmails.sendTransacEmail({
       to: [
         {
@@ -65,7 +79,7 @@ const sendEmail = async (options: SendEmailOptions) => {
 
       sender: {
         name: "BUS-TICKET",
-        email: process.env.SENDER_EMAIL!,
+        email: process.env.SENDER_EMAIL,
       },
 
       subject: options.subject,
@@ -77,13 +91,25 @@ const sendEmail = async (options: SendEmailOptions) => {
       attachment: options.attachments,
     });
 
-    console.log("Email sent successfully", {
-      messageId: result.messageId,
-    });
 
     return result;
-  } catch (error) {
-    console.error("Email delivery failed ", error);
+
+  } 
+  catch (error) {
+
+   Sentry.logger.error("Failed to send email", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      email: options.email,
+      subject: options.subject,
+    });
+
+    Sentry.captureException(error, {
+      tags: {
+        section: "email-sending",
+      },
+    });
+  
   }
 };
 
