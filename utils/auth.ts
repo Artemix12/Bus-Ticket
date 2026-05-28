@@ -23,6 +23,8 @@ export const auth = betterAuth({
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
 		},
 	},
+	trustedOrigins: ["https://bus-ticket-rho.vercel.app","http://localhost:3000"],
+
 
 	databaseHooks: {
 		user: {
