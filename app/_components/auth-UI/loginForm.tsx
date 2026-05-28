@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {useState} from 'react'
 import {authClient} from '@/utils/auth-client'
-import {redirect} from 'next/navigation'
+import {useRouter} from 'next/navigation'
 import * as Sentry from "@sentry/nextjs";
 
 
@@ -23,7 +23,7 @@ export function LoginForm () {
   const[email,setEmail] = useState('')
   const[password,setPassword] = useState('')
   const[errorMessage,setErrorMessage]= useState<string|undefined>('')
-
+  const router = useRouter()
   
  async function handleLogin(e:React.SubmitEvent<HTMLFormElement>)
  {
@@ -36,23 +36,38 @@ export function LoginForm () {
     password:password , 
     
     });
-
+    
     if(error){
       setErrorMessage(error.message)
     }
     if(data)
     {
+      
       setEmail('')
       setPassword('')
-      redirect(data.user?.role==='admin'?'/admin_dashboard':'/dashboard')
+      
+      try {
+        const redirectPath = data.user?.role==='admin'?'/admin_dashboard':'/dashboard'
+        router.push(redirectPath)
+      } catch (redirectError) {
+        Sentry.captureException(redirectError, {
+          tags: {
+            section: "login-form",
+            component: "handleLogin",
+            phase: "redirect"
+          }
+        })
+        setErrorMessage("Error while redirecting after login. Please try again.")
+      }
+      
     }
    } 
    catch (error) 
   {
     Sentry.captureException(error, {
     tags: {
-      section: "login-form",
-      component: "handleLogin"
+    section: "login-form",
+    component: "handleLogin"
     }
   })
 
@@ -149,6 +164,7 @@ const signIn = async () => {
 
             </div>
             <Button
+            
             type="submit"
             className="w-full bg-sky-900 font-semibold text-sky-100 shadow-none transition  hover:bg-sky-800 hover:text-white cursor-pointer mt-6"
           >

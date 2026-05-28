@@ -16,7 +16,8 @@ async function getDashboardData(): Promise<Booking[]> {
   try 
   {
     const cookieStore = await cookies()
-    const data = await fetch(`http://localhost:3000/api/v1/bookings`,{
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const data = await fetch(`${baseUrl}/api/v1/bookings`,{
       headers:{
         Cookie:cookieStore.toString()
       }
@@ -53,10 +54,10 @@ async function getUserSession(): Promise<User> {
       headers: await headers(),
     })
 
-    
+   
 
     if (!session){
-      return redirect('/login')
+      redirect('/login')
     } 
 
     return {

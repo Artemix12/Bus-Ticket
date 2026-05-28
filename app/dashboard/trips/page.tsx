@@ -16,7 +16,8 @@ export const metadata =
 async function getTripsData(): Promise<Trip[]> {
   try {
     const cookie = await cookies()
-    const response = await fetch("http://localhost:3000/api/v1/trip", {
+    const baseUrl = process.env.BETTER_AUTH_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/v1/trip`, {
       headers: {
         Cookie:cookie.toString()
       },
