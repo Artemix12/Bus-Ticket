@@ -4,27 +4,21 @@ import * as Sentry from "@sentry/nextjs";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import path from "path";
 
-
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY!,
   maxRetries: 3,
 });
 
 
-const randomId = Math.floor(Math.random()*1000)
-
 type SendEmailOptions = {
   email: string;
   subject: string;
   mailgenContent: Mailgen.Content;
- 
   qrCode?: string;
- 
   attachments?: {
     name: string;
     content: string;
   }[];
-
   ticketInfo?: {
     passengerName: string;
     from: string;
@@ -39,13 +33,14 @@ type SendEmailOptions = {
 };
 
 
+const toAscii = (str: string): string =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
 const generateTicketPDF = async (
   qrCodeDataUrl: string,
   ticketInfo: NonNullable<SendEmailOptions["ticketInfo"]>
 ): Promise<string> => {
-
   const pdfDoc = await PDFDocument.create();
-
 
   const page = pdfDoc.addPage([419, 595]);
   const { width, height } = page.getSize();
@@ -53,12 +48,10 @@ const generateTicketPDF = async (
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
- 
-  const primaryBlue = rgb(0.1, 0.45, 0.93);  // #1a73e8
+  const primaryBlue = rgb(0.1, 0.45, 0.93);
   const darkGray = rgb(0.2, 0.2, 0.2);
   const lightGray = rgb(0.85, 0.85, 0.85);
   const white = rgb(1, 1, 1);
-
 
   page.drawRectangle({
     x: 0,
@@ -84,7 +77,7 @@ const generateTicketPDF = async (
     color: rgb(0.8, 0.88, 1),
   });
 
-  
+
   page.drawText(`#${ticketInfo.bookingId.slice(-8).toUpperCase()}`, {
     x: width - 120,
     y: height - 50,
@@ -102,7 +95,6 @@ const generateTicketPDF = async (
     });
   };
 
-
   const drawField = (
     label: string,
     value: string,
@@ -110,6 +102,7 @@ const generateTicketPDF = async (
     y: number,
     valueSize = 13
   ) => {
+
     page.drawText(label.toUpperCase(), {
       x,
       y: y + 16,
@@ -126,13 +119,13 @@ const generateTicketPDF = async (
     });
   };
 
- 
   const routeY = height - 130;
 
-  drawField("FROM", ticketInfo.from, 20, routeY, 16);
+ 
+  drawField("FROM", toAscii(ticketInfo.from), 20, routeY, 16);
 
-  
-  page.drawText("→", {
+
+  page.drawText("to", {
     x: width / 2 - 10,
     y: routeY,
     size: 18,
@@ -140,11 +133,11 @@ const generateTicketPDF = async (
     color: primaryBlue,
   });
 
-  drawField("TO", ticketInfo.to, width - 130, routeY, 16);
+
+  drawField("TO", toAscii(ticketInfo.to), width - 130, routeY, 16);
 
   drawSeparator(routeY - 20);
 
-  
   const detailsY = routeY - 70;
 
   drawField("DATE", ticketInfo.departureDate, 20, detailsY);
@@ -153,21 +146,15 @@ const generateTicketPDF = async (
 
   drawSeparator(detailsY - 20);
 
-
   const passengerY = detailsY - 70;
 
-  drawField("PASSENGER", ticketInfo.passengerName, 20, passengerY);
-  drawField(
-    "PAX",
-    String(ticketInfo.passengerCount),
-    width / 2 - 40,
-    passengerY
-  );
+  drawField("PASSENGER", toAscii(ticketInfo.passengerName), 20, passengerY);
+
+  drawField("PAX", String(ticketInfo.passengerCount), width / 2 - 40, passengerY);
   drawField("TOTAL", `$${ticketInfo.totalPrice}`, width - 100, passengerY);
 
   drawSeparator(passengerY - 20);
 
- 
   const qrBase64 = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
   const qrImageBytes = Buffer.from(qrBase64, "base64");
   const qrImage = await pdfDoc.embedPng(qrImageBytes);
@@ -193,6 +180,7 @@ const generateTicketPDF = async (
     height: qrSize,
   });
 
+
   page.drawText("Scan this QR code when boarding", {
     x: width / 2 - 90,
     y: qrY - 20,
@@ -200,7 +188,6 @@ const generateTicketPDF = async (
     font: fontRegular,
     color: rgb(0.5, 0.5, 0.5),
   });
-
 
   page.drawRectangle({
     x: 0,
@@ -218,11 +205,8 @@ const generateTicketPDF = async (
     color: rgb(0.5, 0.5, 0.5),
   });
 
-
   const pdfBytes = await pdfDoc.save();
-  const pdfBase64 = Buffer.from(pdfBytes).toString("base64");
-
-  return pdfBase64;
+  return Buffer.from(pdfBytes).toString("base64");
 };
 
 const sendEmail = async (options: SendEmailOptions) => {
@@ -237,13 +221,11 @@ const sendEmail = async (options: SendEmailOptions) => {
       throw new Error("DOMAIN is not defined in environment variables");
     }
 
- 
-
     const mailGenerator = new Mailgen({
-    theme: {
-    path: path.join(process.cwd(), "node_modules", "mailgen", "themes", "default", "index.html"),
-    plaintextPath: path.join(process.cwd(), "node_modules", "mailgen", "themes", "default", "index.txt"),
-    },
+      theme: {
+        path: path.join(process.cwd(), "node_modules", "mailgen", "themes", "default", "index.html"),
+        plaintextPath: path.join(process.cwd(), "node_modules", "mailgen", "themes", "default", "index.txt"),
+      },
       product: {
         name: "BUS-TICKET",
         link: process.env.DOMAIN,
@@ -253,7 +235,6 @@ const sendEmail = async (options: SendEmailOptions) => {
     const emailText = mailGenerator.generatePlaintext(options.mailgenContent);
     const emailHtml = mailGenerator.generate(options.mailgenContent);
 
-  
     const finalAttachments: { name: string; content: string }[] = [
       ...(options.attachments ?? []),
     ];
@@ -263,8 +244,9 @@ const sendEmail = async (options: SendEmailOptions) => {
         options.qrCode,
         options.ticketInfo
       );
+      // FIX 1 appliqué : bookingId (hex MongoDB) est unique et garanti ASCII
       finalAttachments.push({
-        name: `bus-ticket-${randomId}.pdf`,
+        name: `bus-ticket-${options.ticketInfo.bookingId.slice(-8)}.pdf`,
         content: pdfBase64,
       });
     }
@@ -278,7 +260,6 @@ const sendEmail = async (options: SendEmailOptions) => {
       subject: options.subject,
       htmlContent: emailHtml,
       textContent: emailText,
- 
       ...(finalAttachments.length > 0 && { attachment: finalAttachments }),
     });
 
@@ -330,7 +311,6 @@ const bookingConfirmationMailgenContent = (
         ],
       },
       action: {
-     
         instructions:
           "Your ticket is attached as a PDF. Please download it and present the QR code when boarding.",
         button: {
@@ -407,7 +387,7 @@ const bookingCancellationMailgenContent = (
           { label: "To", value: trip.to },
           { label: "Departure Date", value: trip.departureDate },
           { label: "Price", value: `$${trip.price}` },
-          { label: "Status", value: "❌ Cancelled" },
+          { label: "Status", value: "Cancelled" },
         ],
       },
       action: {
