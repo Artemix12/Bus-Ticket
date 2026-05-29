@@ -49,9 +49,6 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
     remainingSeats: findTrip.remainingSeat})
     return NextResponse.json({error:'Not enough seats available'},{status:400})
 
-    }else
-    {
-      await Trip.findByIdAndUpdate(id,{$inc:{remainingSeat:-passengerCount}},{returnDocument: 'after'})
     }
 
 
@@ -63,6 +60,8 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
       totalPrice: findTrip.price * passengerCount
     })
 
+     await Trip.findByIdAndUpdate(id,{$inc:{remainingSeat:-passengerCount}},{returnDocument: 'after'})
+
     const ticketUrl = `${process.env.DOMAIN}/scan/${newBooking._id}`
 
     const viewAllTicketsURL = `${process.env.DOMAIN}/dashboard`
@@ -73,40 +72,57 @@ export const POST = async (request:NextRequest,{params}:{params:Promise<{id:stri
     return NextResponse.json({error:'Failed to generate QR code'},{status:500})
     }
 
-  try {
-    await sendEmail({
-      email: session.user.email,
-      subject: "Booking Confirmation",
-      qrCode,
-      mailgenContent: bookingConfirmationMailgenContent(
-        session.user.name,
-        {
-          origin: findTrip.from,
-          destination: findTrip.to,
+     try {
+      await sendEmail({
+        email: session.user.email,
+        subject: "Booking Confirmation",
+        qrCode,
+        mailgenContent: bookingConfirmationMailgenContent(
+          session.user.name,
+          {
+            origin: findTrip.from,
+            destination: findTrip.to,
+            departureDate: findTrip.departureDate,
+            departureTime: findTrip.departureTime,
+            price: findTrip.price,
+          },
+          newBooking.seatNumber,
+          newBooking.totalPrice,
+          newBooking.passengerCount,
+          viewAllTicketsURL
+        ),
+
+        ticketInfo: {
+          passengerName: session.user.name,
+          from: findTrip.from,
+          to: findTrip.to,
           departureDate: findTrip.departureDate,
           departureTime: findTrip.departureTime,
-          price: findTrip.price,
+          seatNumber: newBooking.seatNumber,
+          passengerCount: newBooking.passengerCount,
+          totalPrice: newBooking.totalPrice,
+          bookingId: String(newBooking._id),
         },
-        newBooking.seatNumber,
-        newBooking.totalPrice,
-        newBooking.passengerCount,
-        viewAllTicketsURL
-      )
-    });
-  
-  } catch (error) {
-    Sentry.logger.error("Failed to send Email confirmation")
-    Sentry.captureException(error, {tags: {section: "email-confirmation"}});
-  }
+      });
+    } catch (error) {
+     
+      Sentry.logger.error("Failed to send booking confirmation email", {
+        bookingId: String(newBooking._id),
+        error: error instanceof Error ? error.message : String(error),
+      });
+      Sentry.captureException(error, {
+        tags: { section: "email-confirmation" },
+      });
+    }
 
 
-  Sentry.logger.info("Booking created successfully", {
-  bookingId: newBooking._id,
-  userId: session.user.id,
-  tripId: id,
-  passengerCount,
-  totalPrice: newBooking.totalPrice
-  })
+    Sentry.logger.info("Booking created successfully", {
+    bookingId: newBooking._id,
+    userId: session.user.id,
+    tripId: id,
+    passengerCount,
+    totalPrice: newBooking.totalPrice
+    })
 
   return NextResponse.json({success:true,data:newBooking,message: "Booking created successfully"},{status:201})
 
@@ -148,10 +164,7 @@ export const DELETE = async(request:NextRequest,{params}:{params:Promise<{id:str
    )
    }
 
-  const updatedBooking = await Booking.findByIdAndDelete(
-  id,
-  
-  )
+  const updatedBooking = await Booking.findByIdAndDelete(id)
 
   const updatedRemainingSeats = await Trip.findByIdAndUpdate(
     updatedBooking.tripId,
@@ -171,24 +184,26 @@ export const DELETE = async(request:NextRequest,{params}:{params:Promise<{id:str
    )
   }
 
-    try {
+   try {
+   
       await sendEmail({
         email: session.user.email,
-        subject: "Booking cancellation",
-        mailgenContent:bookingCancellationMailgenContent(
-          session.user.name,
-          {
-            from:updatedRemainingSeats.from,
-            to:updatedRemainingSeats.to,
-            departureDate:updatedRemainingSeats.departureDate,
-            price:updatedRemainingSeats.price
-          }
-        )
+        subject: "Booking Cancellation",
+        mailgenContent: bookingCancellationMailgenContent(session.user.name, {
+          from: updatedRemainingSeats.from,
+          to: updatedRemainingSeats.to,
+          departureDate: updatedRemainingSeats.departureDate,
+          price: updatedRemainingSeats.price,
+        }),
       });
-      
     } catch (error) {
-      Sentry.logger.error("⚠️ Failed to send cancellation email")
-      Sentry.captureException(error, {tags: {section: "email-cancellation"}});
+      Sentry.logger.error("Failed to send cancellation email", {
+        bookingId: id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      Sentry.captureException(error, {
+        tags: { section: "email-cancellation" },
+      });
     }
 
   Sentry.logger.info("Booking cancelled successfully", 
