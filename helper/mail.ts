@@ -2,6 +2,7 @@ import Mailgen from "mailgen";
 import { BrevoClient } from "@getbrevo/brevo";
 import * as Sentry from "@sentry/nextjs";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { createRequire } from "module"
 import path from "path";
 
 const brevo = new BrevoClient({
