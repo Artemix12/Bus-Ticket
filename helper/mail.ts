@@ -8,6 +8,8 @@ const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY!,
   maxRetries: 3,
 });
+const _require = createRequire(import.meta.url);
+const mailgenBase = path.dirname(_require.resolve("mailgen/package.json"));
 
 const randomId = Math.floor(Math.random()*1000)
 
@@ -235,7 +237,7 @@ const sendEmail = async (options: SendEmailOptions) => {
       throw new Error("DOMAIN is not defined in environment variables");
     }
 
-    const mailgenBase = path.dirname(require.resolve("mailgen/package.json"));
+ 
 
     const mailGenerator = new Mailgen({
       theme: {
