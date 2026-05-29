@@ -9,7 +9,6 @@ const brevo = new BrevoClient({
   maxRetries: 3,
 });
 
-
 type SendEmailOptions = {
   email: string;
   subject: string;
@@ -31,7 +30,6 @@ type SendEmailOptions = {
     bookingId: string;
   };
 };
-
 
 const toAscii = (str: string): string =>
   str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -77,7 +75,6 @@ const generateTicketPDF = async (
     color: rgb(0.8, 0.88, 1),
   });
 
-
   page.drawText(`#${ticketInfo.bookingId.slice(-8).toUpperCase()}`, {
     x: width - 120,
     y: height - 50,
@@ -97,11 +94,17 @@ const generateTicketPDF = async (
 
   const drawField = (
     label: string,
-    value: string,
+    value: string | Date | number,
     x: number,
     y: number,
     valueSize = 13
   ) => {
+   
+    const safeValue = toAscii(
+      value instanceof Date
+        ? value.toLocaleDateString("en-US")
+        : String(value)
+    );
 
     page.drawText(label.toUpperCase(), {
       x,
@@ -110,7 +113,9 @@ const generateTicketPDF = async (
       font: fontRegular,
       color: rgb(0.5, 0.5, 0.5),
     });
-    page.drawText(value, {
+
+ 
+    page.drawText(safeValue, {
       x,
       y,
       size: valueSize,
@@ -121,9 +126,7 @@ const generateTicketPDF = async (
 
   const routeY = height - 130;
 
- 
-  drawField("FROM", toAscii(ticketInfo.from), 20, routeY, 16);
-
+  drawField("FROM", ticketInfo.from, 20, routeY, 16);
 
   page.drawText("to", {
     x: width / 2 - 10,
@@ -134,7 +137,7 @@ const generateTicketPDF = async (
   });
 
 
-  drawField("TO", toAscii(ticketInfo.to), width - 130, routeY, 16);
+  drawField("TO", ticketInfo.to, width - 130, routeY, 16);
 
   drawSeparator(routeY - 20);
 
@@ -142,15 +145,15 @@ const generateTicketPDF = async (
 
   drawField("DATE", ticketInfo.departureDate, 20, detailsY);
   drawField("TIME", ticketInfo.departureTime, width / 2 - 40, detailsY);
-  drawField("SEAT", String(ticketInfo.seatNumber), width - 100, detailsY);
+  drawField("SEAT", ticketInfo.seatNumber, width - 100, detailsY);
 
   drawSeparator(detailsY - 20);
 
   const passengerY = detailsY - 70;
 
-  drawField("PASSENGER", toAscii(ticketInfo.passengerName), 20, passengerY);
-
-  drawField("PAX", String(ticketInfo.passengerCount), width / 2 - 40, passengerY);
+  // FIX 2: idem
+  drawField("PASSENGER", ticketInfo.passengerName, 20, passengerY);
+  drawField("PAX", ticketInfo.passengerCount, width / 2 - 40, passengerY);
   drawField("TOTAL", `$${ticketInfo.totalPrice}`, width - 100, passengerY);
 
   drawSeparator(passengerY - 20);
@@ -179,7 +182,6 @@ const generateTicketPDF = async (
     width: qrSize,
     height: qrSize,
   });
-
 
   page.drawText("Scan this QR code when boarding", {
     x: width / 2 - 90,
@@ -244,7 +246,6 @@ const sendEmail = async (options: SendEmailOptions) => {
         options.qrCode,
         options.ticketInfo
       );
-      // FIX 1 appliqué : bookingId (hex MongoDB) est unique et garanti ASCII
       finalAttachments.push({
         name: `bus-ticket-${options.ticketInfo.bookingId.slice(-8)}.pdf`,
         content: pdfBase64,
