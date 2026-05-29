@@ -40,13 +40,6 @@ export const POST = async(request:NextRequest,{params}:{params:Promise<{id:strin
     if(findTrip.status !== 'available'){
     return NextResponse.json({error:'Trip is not available for booking'},{status:400})
     }
-    
-    if(findTrip.remainingSeat < passengerCount){
-    return NextResponse.json({error:'Not enough seats available'},{status:400})
-    }else
-    {
-     await Trip.findByIdAndUpdate(id,{$inc:{remainingSeat:-passengerCount}},{returnDocument: 'after'})
-    }
 
     const giftBooking  = await Booking.create({
     userId: session.user.id,
@@ -58,6 +51,13 @@ export const POST = async(request:NextRequest,{params}:{params:Promise<{id:strin
     isGift:true
     })
     
+    if(findTrip.remainingSeat < passengerCount){
+    return NextResponse.json({error:'Not enough seats available'},{status:400})
+    }
+     
+    await Trip.findByIdAndUpdate(id,{$inc:{remainingSeat:-passengerCount}},{returnDocument: 'after'})
+    
+    
     const ticketUrl = `${process.env.DOMAIN}/scan/${giftBooking._id}`
     
     const qrCode = await QRCode.toDataURL(ticketUrl)
@@ -68,27 +68,44 @@ export const POST = async(request:NextRequest,{params}:{params:Promise<{id:strin
     
     try {
       await sendEmail({
-        email:giftRecipient,
+       
+        email: giftRecipient,
         qrCode,
-        subject:"🎁 You've Received a Bus Ticket Gift",
-        mailgenContent:giftTicketMailgenContent(
-              giftRecipient,
-              session.user.name,
-              {
-                from: findTrip.from,
-                to: findTrip.to,
-                departureDate: findTrip.departureDate,
-                departureTime: findTrip.departureTime,
-                price: findTrip.price,
-              },
-              giftBooking.seatNumber,
-              ticketUrl
-          ),
+        subject: "🎁 You've Received a Bus Ticket Gift",
+        mailgenContent: giftTicketMailgenContent(
+          giftRecipient,
+          session.user.name,
+          {
+            from: findTrip.from,
+            to: findTrip.to,
+            departureDate: findTrip.departureDate,
+            departureTime: findTrip.departureTime,
+            price: findTrip.price,
+          },
+          giftBooking.seatNumber,
+          ticketUrl
+        ),
+        
+        ticketInfo: {
+          passengerName: giftRecipient,
+          from: findTrip.from,
+          to: findTrip.to,
+          departureDate: findTrip.departureDate,
+          departureTime: findTrip.departureTime,
+          seatNumber: giftBooking.seatNumber,
+          passengerCount: giftBooking.passengerCount,
+          totalPrice: giftBooking.totalPrice,
+          bookingId: String(giftBooking._id),
+        },
       });
-      
     } catch (error) {
-      Sentry.logger.error("⚠️ Failed to send gift ticket email");
-      Sentry.captureException(error, {tags: {section: "email-gift-ticket"}});
+      
+      Sentry.logger.error("Failed to send gift ticket email", {
+        bookingId: String(giftBooking._id),
+        giftRecipient,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      Sentry.captureException(error, { tags: { section: "email-gift-ticket" } });
     }
 
   Sentry.logger.info("Gift ticket created successfully", {
