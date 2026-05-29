@@ -2,15 +2,14 @@ import Mailgen from "mailgen";
 import { BrevoClient } from "@getbrevo/brevo";
 import * as Sentry from "@sentry/nextjs";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { createRequire } from "module"
 import path from "path";
+
 
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY!,
   maxRetries: 3,
 });
-const _require = createRequire(import.meta.url);
-const mailgenBase = path.dirname(_require.resolve("mailgen/package.json"));
+
 
 const randomId = Math.floor(Math.random()*1000)
 
@@ -241,15 +240,10 @@ const sendEmail = async (options: SendEmailOptions) => {
  
 
     const mailGenerator = new Mailgen({
-      theme: {
-        path: path.join(mailgenBase, "themes", "default", "index.html"),
-        plaintextPath: path.join(
-          mailgenBase,
-          "themes",
-          "default",
-          "index.txt"
-        ),
-      },
+    theme: {
+    path: path.join(process.cwd(), "node_modules", "mailgen", "themes", "default", "index.html"),
+    plaintextPath: path.join(process.cwd(), "node_modules", "mailgen", "themes", "default", "index.txt"),
+    },
       product: {
         name: "BUS-TICKET",
         link: process.env.DOMAIN,
