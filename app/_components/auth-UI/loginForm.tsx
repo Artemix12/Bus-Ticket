@@ -150,7 +150,7 @@ const signIn = async () => {
   
 
               <div className="grid gap-1.5">
-              
+              <Label htmlFor="password" className="text-sm text-slate-300">Password</Label>
                 <Input
                   id="password"
                   type="password"

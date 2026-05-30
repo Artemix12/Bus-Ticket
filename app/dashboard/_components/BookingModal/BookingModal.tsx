@@ -26,10 +26,10 @@ export function BookingModal({
   const [recipientEmail, setRecipientEmail] = useState("")
 
    const notifyGiftSuccess = () => toast.success(`🎁 Gift ticket sent successfully to email ${recipientEmail!==''&& recipientEmail} !`,{
-     duration: 5000
+     duration: 8000
    })
    const notifyBookingSuccess = () => toast.success('✓ Booking confirmed successfully! Please check your email for details.',{
-    duration: 5000
+    duration: 8000
    })
 
    const router = useRouter()

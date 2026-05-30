@@ -25,6 +25,7 @@ interface Booking
   tripPrice:number
   totalPrice:number, 
   status:string
+  isUsed:boolean
 }
  
 interface BookingStats
@@ -181,12 +182,12 @@ export function RecentBookingsTable() {
               <span
                 className={`rounded-full px-3 py-1 text-xs font-medium
                 ${
-                  booking.status === "available"
+                  !booking.isUsed
                     ? "border border-emerald-500/20 bg-emerald-500/10 text-emerald-400"
                     : "border border-red-500/20 bg-red-500/10 text-red-400"
                 }`}
               >
-                {booking.status}
+                {booking.isUsed ? "Used":"Active"}
               </span>
 
             </TableCell>

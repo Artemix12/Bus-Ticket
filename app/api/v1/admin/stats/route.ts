@@ -91,7 +91,7 @@ export async function  GET(request:NextRequest)
     passengerCount: 1,
     seatNumber: 1,
     totalPrice: 1,
-    status: 1,
+    isUsed: 1,
 
     passengerName: '$user.name',
     passengerEmail: '$user.email',

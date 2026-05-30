@@ -3,6 +3,7 @@ import { BrevoClient } from "@getbrevo/brevo";
 import * as Sentry from "@sentry/nextjs";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import path from "path";
+import { dateTimeFormatter,  } from "@/app/dashboard/_lib/formatters"
 
 const brevo = new BrevoClient({
   apiKey: process.env.BREVO_API_KEY!,
@@ -143,8 +144,8 @@ const generateTicketPDF = async (
 
   const detailsY = routeY - 70;
 
-  drawField("DATE", ticketInfo.departureDate, 20, detailsY);
-  drawField("TIME", ticketInfo.departureTime, width / 2 - 40, detailsY);
+  drawField("DATE",dateTimeFormatter.date(ticketInfo.departureDate) , 20, detailsY);
+  drawField("TIME", dateTimeFormatter.time(ticketInfo.departureTime), width / 2 - 40, detailsY);
   drawField("SEAT", ticketInfo.seatNumber, width - 100, detailsY);
 
   drawSeparator(detailsY - 20);
@@ -303,8 +304,8 @@ const bookingConfirmationMailgenContent = (
         data: [
           { label: "From", value: trip.origin },
           { label: "To", value: trip.destination },
-          { label: "Departure Date", value: trip.departureDate },
-          { label: "Departure Time", value: trip.departureTime },
+          { label: "Departure Date", value: dateTimeFormatter.date(trip.departureDate)},
+          { label: "Departure Time", value: dateTimeFormatter.time(trip.departureTime) },
           { label: "Price", value: `$${trip.price}` },
           { label: "Passenger Count", value: passengerCount },
           { label: "Seat Number", value: seatNumber },
@@ -322,7 +323,7 @@ const bookingConfirmationMailgenContent = (
       },
       outro: [
         "Need to cancel? You can do so directly from this email by clicking the link below.",
-        `Cancel my reservation: ${process.env.DOMAIN}/bookings/cancel`,
+        `Cancel my reservation: ${process.env.DOMAIN}/dashboard`,
       ],
     },
   };
